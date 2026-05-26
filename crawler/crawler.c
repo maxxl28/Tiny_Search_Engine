@@ -2,10 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bag.h"
-#include "hashtable.h"
-#include "webpage.h"
-#include "pagedir.h"
+#include "../libcs50/bag.h"
+#include "../libcs50/hashtable.h"
+#include "../libcs50/webpage.h"
+#include "../libcs50/mem.h"
+#include "../common/pagedir.h"
 #include "mem.h"
 
 static void parseArgs(const int argc, char* argv[],
