@@ -14,7 +14,8 @@ static void parseArgs(const int argc, char* argv[],
 static void crawl(char* seedURL, char* pageDirectory, const int maxDepth);
 static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen);
 
-int main(const int argc, char* argv[])
+int
+main(const int argc, char* argv[])
 {
   char* seedURL = NULL;
   char* pageDirectory = NULL;
@@ -31,7 +32,8 @@ int main(const int argc, char* argv[])
  * Initialize pageDirectory. Validate maxDepth range.
  * Exit non-zero on any error.
  */
-static void parseArgs(const int argc, char* argv[],
+static 
+void parseArgs(const int argc, char* argv[],
                       char** seedURL, char** pageDirectory, int* maxDepth)
 {
     if (argc != 4) {
@@ -57,7 +59,7 @@ static void parseArgs(const int argc, char* argv[],
         exit(1);
     }
 
-    
+
     // validate maxDepth
     char excess;
     if (sscanf(argv[3], "%d%c", maxDepth, &excess) != 1) {
@@ -73,14 +75,16 @@ static void parseArgs(const int argc, char* argv[],
 /* Crawl from seedURL to maxDepth, saving pages in pageDirectory.
  * Uses a bag of pages to crawl and a hashtable of seen URLs.
  */
-static void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
+static 
+void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
 {
 }
 
 /* Scan the given page for URLs. For each internal URL not yet seen,
  * add it to both the hashtable and the bag.
  */
-static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen)
+static 
+void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen)
 {
 
 }
