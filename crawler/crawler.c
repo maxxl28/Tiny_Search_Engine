@@ -78,6 +78,27 @@ void parseArgs(const int argc, char* argv[],
 static 
 void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
 {
+  hashtable_t* pagesSeen = hashtable_new(200);
+  hashtable_insert(pagesSeen, seedURL, "");
+  bag_t* webPages = bag_new();
+  webpage_t* seedPage = webpage_new(seedURL, 0, NULL);
+  bag_insert(webPages, seedPage);
+  int docID = 1;
+  webpage_t* page;
+
+  
+  while ((page = bag_extract(webPages)) != NULL) {
+    if (webpage_fetch(page)) {
+      pagedir_save(page, pageDirectory, docID);
+      docID++;
+      if (webpage_getDepth(page) < maxDepth) {
+          pageScan(page, webPages, pagesSeen);
+      }
+    }
+    webpage_delete(page);
+  }
+  hashtable_delete(pagesSeen, NULL);
+  bag_delete(webPages, webpage_delete); 
 }
 
 /* Scan the given page for URLs. For each internal URL not yet seen,
