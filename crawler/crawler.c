@@ -7,7 +7,6 @@
 #include "../libcs50/webpage.h"
 #include "../libcs50/mem.h"
 #include "../common/pagedir.h"
-#include "mem.h"
 
 static void parseArgs(const int argc, char* argv[],
                       char** seedURL, char** pageDirectory, int* maxDepth);
@@ -107,5 +106,19 @@ void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
 static 
 void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen)
 {
-
+  int pos = 0;
+  char* url;  
+  while ((url = webpage_getNextURL(page, &pos)) != NULL) {
+    if (isInternalURL(url)) {
+      if (hashtable_insert(pagesSeen, url, "")) {
+        webpage_t* newPage = webpage_new(url, webpage_getDepth(page) + 1, NULL);
+        bag_insert(pagesToCrawl, newPage);
+      } else {
+        free(url);
+      }
+    }
+    else {
+      free(url);
+    }
+  }
 }
