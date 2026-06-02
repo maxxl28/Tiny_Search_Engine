@@ -1,1 +1,3 @@
 !libcs50-given.a
+*.o
+*.a

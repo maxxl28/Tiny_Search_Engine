@@ -1,0 +1,133 @@
+#!/bin/bash
+# testing.sh - Tests for the CS50 TSE Indexer
+# Peter Owolabi, Spring 2026
+
+CRAWLER_DATA=../crawler/testdata
+INDEXCMP=/cs50/shared/tse/indexcmp
+
+### ERROR CASES ###
+
+echo "=== Test 1: No arguments ==="
+=== Test 1: No arguments ===
+./indexer
+Usage: ./indexer pageDirectory indexFilename
+echo "Exit: $?"
+Exit: 1
+
+echo "=== Test 2: One argument ==="
+=== Test 2: One argument ===
+./indexer $CRAWLER_DATA/letters-1
+Usage: ./indexer pageDirectory indexFilename
+echo "Exit: $?"
+Exit: 1
+
+echo "=== Test 3: Too many arguments ==="
+=== Test 3: Too many arguments ===
+./indexer $CRAWLER_DATA/letters-1 myindex extra
+Usage: ./indexer pageDirectory indexFilename
+echo "Exit: $?"
+Exit: 1
+
+echo "=== Test 4: Non-existent pageDirectory ==="
+=== Test 4: Non-existent pageDirectory ===
+./indexer /nonexistent/path myindex
+Error: '/nonexistent/path' is not a valid crawler directory
+echo "Exit: $?"
+Exit: 1
+
+echo "=== Test 5: Not a crawler directory ==="
+=== Test 5: Not a crawler directory ===
+./indexer /tmp myindex
+Error: '/tmp' is not a valid crawler directory
+echo "Exit: $?"
+Exit: 1
+
+echo "=== Test 6: Bad indexFilename path ==="
+=== Test 6: Bad indexFilename path ===
+./indexer $CRAWLER_DATA/letters-1 /nonexistent/dir/myindex
+Error: '../crawler/testdata/letters-1' is not a valid crawler directory
+echo "Exit: $?"
+Exit: 1
+
+### CORRECTNESS TESTS ###
+
+echo "=== Test 7: letters depth 0 ==="
+=== Test 7: letters depth 0 ===
+./indexer $CRAWLER_DATA/letters-0 myindex_letters0
+echo "Exit: $?"
+Exit: 0
+./indextest myindex_letters0 myindex_letters0_copy
+echo "Exit: $?"
+Exit: 0
+
+echo "=== Test 8: letters depth 10 ==="
+=== Test 8: letters depth 10 ===
+./indexer $CRAWLER_DATA/letters-10 myindex_letters10
+echo "Exit: $?"
+Exit: 0
+./indextest myindex_letters10 myindex_letters10_copy
+echo "Exit: $?"
+Exit: 0
+
+echo "=== Test 9: toscrape depth 1 ==="
+=== Test 9: toscrape depth 1 ===
+./indexer $CRAWLER_DATA/toscrape-1 myindex_toscrape1
+echo "Exit: $?"
+Exit: 0
+./indextest myindex_toscrape1 myindex_toscrape1_copy
+echo "Exit: $?"
+Exit: 0
+
+echo "=== Test 10: wikipedia depth 1 ==="
+=== Test 10: wikipedia depth 1 ===
+./indexer $CRAWLER_DATA/wikipedia-1 myindex_wikipedia1
+echo "Exit: $?"
+Exit: 0
+./indextest myindex_wikipedia1 myindex_wikipedia1_copy
+echo "Exit: $?"
+Exit: 0
+
+### MEMORY TESTS ###
+
+echo "=== Test 11: Valgrind on indexer ==="
+=== Test 11: Valgrind on indexer ===
+valgrind --leak-check=full ./indexer $CRAWLER_DATA/letters-10 myindex_valgrind 2>&1
+==370671== Memcheck, a memory error detector
+==370671== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==370671== Using Valgrind-3.26.0 and LibVEX; rerun with -h for copyright info
+==370671== Command: ./indexer ../crawler/testdata/letters-10 myindex_valgrind
+==370671== 
+==370671== 
+==370671== HEAP SUMMARY:
+==370671==     in use at exit: 0 bytes in 0 blocks
+==370671==   total heap usage: 1,564 allocs, 1,564 frees, 134,677 bytes allocated
+==370671== 
+==370671== All heap blocks were freed -- no leaks are possible
+==370671== 
+==370671== For lists of detected and suppressed errors, rerun with: -s
+==370671== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+echo "Exit: $?"
+Exit: 0
+
+echo "=== Test 12: Valgrind on indextest ==="
+=== Test 12: Valgrind on indextest ===
+valgrind --leak-check=full ./indextest myindex_letters10 myindex_valgrind_copy 2>&1
+==370673== Memcheck, a memory error detector
+==370673== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==370673== Using Valgrind-3.26.0 and LibVEX; rerun with -h for copyright info
+==370673== Command: ./indextest myindex_letters10 myindex_valgrind_copy
+==370673== 
+==370673== 
+==370673== HEAP SUMMARY:
+==370673==     in use at exit: 0 bytes in 0 blocks
+==370673==   total heap usage: 172 allocs, 172 frees, 13,612 bytes allocated
+==370673== 
+==370673== All heap blocks were freed -- no leaks are possible
+==370673== 
+==370673== For lists of detected and suppressed errors, rerun with: -s
+==370673== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+echo "Exit: $?"
+Exit: 0
+
+# Cleanup
+rm -f myindex_*
