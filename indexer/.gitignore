@@ -3,3 +3,6 @@ indextest
 *.o
 
 myindex*
+*.o
+common.a
+myindex
