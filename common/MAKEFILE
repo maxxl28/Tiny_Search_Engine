@@ -1,0 +1,12 @@
+CC = gcc
+CFLAGS = -Wall -pedantic -std=c11 -ggdb -I../libcs50
+
+OBJS = pagedir.o
+
+common.a: $(OBJS)
+	ar cr common.a $(OBJS)
+
+pagedir.o: pagedir.c pagedir.h ../libcs50/webpage.h
+
+clean:
+	rm -f *~ *.o common.a
