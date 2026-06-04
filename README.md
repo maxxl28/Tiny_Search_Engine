@@ -1,9 +1,19 @@
-# CS50 TSE
-## Student name (GitHub username)
+# Tiny Search Engine (TSE)
 
-The assignment and Specs are in a [public repo](https://github.com/CS50DartmouthWI25/home/tree/main/labs/tse).
-Do not clone that repo; view it on GitHub.
-Watch there for any commits that may represent updates to the assignment or specs.
+## Overview
 
-Add here any assumptions you made while writing the crawler, any ways in which your implementation differs from the three Specs, or any ways in which you know your implementation fails to work.
+The Tiny Search Engine consists of three subsystems:
 
+1. Crawler — crawls a website starting from a seed URL, downloading pages up to a given depth and saving them to a directory.
+2. Indexer — reads the pages produced by the crawler, builds a mapping words to (docID, count) pairs, and writes it to a file.
+3. Querier — reads the index file and answers search queries from stdin,also supports both And and Or
+
+## Building
+make:
+Builds all three subsystems and their shared libraries (`libcs50` and `common`).
+
+make clear: Removes all compiled files.
+
+## Testing
+
+Each subsystem has its own `testing.sh`. From any subdirectory just type make test
