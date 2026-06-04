@@ -267,6 +267,8 @@ andSequence(char** wordArray, int* i, index_t* index)
   return result;
 }
 
+// modifies result in place: for each docID currently in result,
+// set its score to min(result's score, other's score).
 static void
 intersectCounters(counters_t* result, counters_t* other)
 {
@@ -274,6 +276,9 @@ intersectCounters(counters_t* result, counters_t* other)
   counters_iterate(result, &two, intersectHelper);
 }
 
+// called once per (docID, count) in result.
+// looks up the same docID in other, keeps the smaller score.
+// This is the AND logic
 static void
 intersectHelper(void* arg, const int key, const int count)
 {
@@ -286,12 +291,17 @@ intersectHelper(void* arg, const int key, const int count)
   }
 }
 
+// modifies dest in place: for each docID in src,
+// add src's count to whatever dest already has for that docID.
+//this is the OR logic
 static void
 unionCounters(counters_t* dest, counters_t* src)
 {
   counters_iterate(src, dest, unionHelper);
 }
 
+// called once per (docID, count) in src
+// adds this count to dest's existing count for the same docID.
 static void
 unionHelper(void* arg, const int key, const int count)
 {
@@ -300,6 +310,8 @@ unionHelper(void* arg, const int key, const int count)
   counters_set(dest, key, existing + count);
 }
 
+// prints all matching documents in decreasing score order.
+// we repeadtedly find the max, print it and then set it to 0
 static void
 rankAndPrint(counters_t* result, const char* pageDirectory)
 {
@@ -307,7 +319,7 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
     printf("No documents match.\n");
     return;
   }
-
+  // if all have count 0 then no docs match
   int matchCount = 0;
   counters_iterate(result, &matchCount, countHelper);
   if (matchCount == 0) {
@@ -316,8 +328,10 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
   }
 
   printf("Matches %d documents (ranked):\n", matchCount);
+
+  //each iteration finds the max, prints it, sets it to zero
   for (int n = 0; n < matchCount; n++) {
-    max_doc_t max = { 0, 0 };
+    max_doc_t max = {0, 0};
     counters_iterate(result, &max, rankHelper);
     if (max.maxCount == 0) break;
 
@@ -346,7 +360,8 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
   }
 }
 
-
+// called once per (docID, count) in result.
+// updates max if this doc's score is higher than the best so far.
 static void
 rankHelper(void* arg, const int key, const int count)
 {
@@ -357,19 +372,21 @@ rankHelper(void* arg, const int key, const int count)
   }
 }
 
-
+// called once per (docID, count) in result.
+// increments the counter if this doc has a nonzero score.
 static void
 countHelper(void* arg, const int key, const int count)
 {
   int* n = arg;
-  if (count > 0) (*n)++;
+  if (count > 0) 
+  {
+    (*n)++;
+  }
 }
 
-
+// prints Query? regardless of whether it is from stdin or from a file
 static void
 prompt(void)
 {
-  if (isatty(fileno(stdin))) {
-    printf("What is your TSE query? ");
-  }
+  printf("Query? ");
 }
