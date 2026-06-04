@@ -38,14 +38,20 @@ static void countHelper(void* arg, const int key, const int count);
 static void prompt(void);
 int fileno(FILE* stream);
 
-
+//runs the whole process
 int
 main(const int argc, char* argv[])
 {
+  // this needs to 
   char* pageDirectory = NULL;
   char* indexFilename = NULL;
   parseArgs(argc, argv, &pageDirectory, &indexFilename);
+
   index_t* index = index_load(indexFilename);
+  if (index == NULL){
+    fprintf(stderr, "index is null");
+    exit(1);
+  }
 
   // process queries one line at a time
   char* line;
@@ -119,8 +125,13 @@ parseArgs(const int argc, char* argv[],
 static bool
 tokenizeQuery(const char* line, char*** wordArray, int* numWords)
 {
-  // upper bound is max possible amount of words
-  int maxWords = strlen(line) / 2 + 1;
+  //check everything is there
+  if (line == NULL || wordArray == NULL || numWords == NULL){
+    return false;
+  }
+
+  // upper bound is max possible amount of words but just to be safe we make it larger
+  int maxWords = strlen(line) +1;
   *wordArray = mem_malloc(maxWords * sizeof(char*));
   int i = 0;
   const char* p = line;
@@ -168,6 +179,11 @@ tokenizeQuery(const char* line, char*** wordArray, int* numWords)
 static bool
 validateQuery(char** wordArray, const int numWords)
 {
+  
+  //check everything is there
+  if (wordArray == NULL || numWords <= 0){
+    return false;
+  }
   // check first word
   if (strcmp(wordArray[0], "and") == 0 || strcmp(wordArray[0], "or") == 0) {
     fprintf(stderr, "Error: '%s' cannot be first\n", wordArray[0]);
@@ -229,7 +245,7 @@ andSequence(char** wordArray, int* i, index_t* index)
     unionCounters(result, first);
   }
   (*i)++;
-  // keep intersecting while we see more words 
+  // keep intersecting while more words
   while (wordArray[*i] != NULL && strcmp(wordArray[*i], "or") != 0) {
     // skip and
     if (strcmp(wordArray[*i], "and") == 0) {
@@ -237,7 +253,7 @@ andSequence(char** wordArray, int* i, index_t* index)
       continue;
     }
 
-    // intersect with next word's counters
+    // then we intersect with next word's counters
     counters_t* ctrs = index_find(index, wordArray[*i]);
     if (ctrs != NULL) {
       intersectCounters(result, ctrs);
@@ -254,42 +270,99 @@ andSequence(char** wordArray, int* i, index_t* index)
 static void
 intersectCounters(counters_t* result, counters_t* other)
 {
+  two_counters_t two = {result, other};
+  counters_iterate(result, &two, intersectHelper);
 }
-
 
 static void
 intersectHelper(void* arg, const int key, const int count)
 {
+  two_counters_t* two = arg;
+  int otherCount = counters_get((*two).other, key);
+  if (count < otherCount) {
+    counters_set(two->result, key, count);
+  } else {
+    counters_set(two->result, key, otherCount);
+  }
 }
-
 
 static void
 unionCounters(counters_t* dest, counters_t* src)
 {
+  counters_iterate(src, dest, unionHelper);
 }
-
 
 static void
 unionHelper(void* arg, const int key, const int count)
 {
+  counters_t* dest = arg;
+  int existing = counters_get(dest, key);
+  counters_set(dest, key, existing + count);
 }
-
 
 static void
 rankAndPrint(counters_t* result, const char* pageDirectory)
 {
+  if (result == NULL) {
+    printf("No documents match.\n");
+    return;
+  }
+
+  int matchCount = 0;
+  counters_iterate(result, &matchCount, countHelper);
+  if (matchCount == 0) {
+    printf("All conts are zero so no docs match.\n");
+    return;
+  }
+
+  printf("Matches %d documents (ranked):\n", matchCount);
+  for (int n = 0; n < matchCount; n++) {
+    max_doc_t max = { 0, 0 };
+    counters_iterate(result, &max, rankHelper);
+    if (max.maxCount == 0) break;
+
+    
+    char* filepath = mem_malloc(strlen(pageDirectory) + 20);
+    sprintf(filepath, "%s/%d", pageDirectory, max.maxKey);
+
+    // read the URL 
+    FILE* fp = fopen(filepath, "r");
+    char* url = NULL;
+    if (fp != NULL) {
+      url = file_readLine(fp);
+      fclose(fp);
+    }
+
+    if (url != NULL) {
+      printf("score %4d doc %4d: %s\n", max.maxCount, max.maxKey, url);
+    } 
+    else {
+      printf("score %4d doc %4d: (unknown)\n", max.maxCount, max.maxKey);
+    }
+    free(url);
+    free(filepath);
+
+    counters_set(result, max.maxKey, 0);
+  }
 }
 
 
 static void
 rankHelper(void* arg, const int key, const int count)
 {
+  max_doc_t* max = arg;
+  if (count > (*max).maxCount) {
+    (*max).maxKey = key;
+    (*max).maxCount = count;
+  }
 }
 
 
 static void
 countHelper(void* arg, const int key, const int count)
 {
+  int* n = arg;
+  if (count > 0) (*n)++;
 }
 
 
