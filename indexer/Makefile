@@ -1,7 +1,7 @@
 # Makefile for indexer
 CC = gcc
 CFLAGS = -Wall -pedantic -std=c11 -ggdb -I../libcs50 -I../common
-LIBS = ../common/common.a ../libcs50/libcs50-given.a
+LIBS = ../common/common.a ../libcs50/libcs50.a
 
 .PHONY: all clean test
 
