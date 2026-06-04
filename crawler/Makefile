@@ -16,7 +16,7 @@ crawler.o: crawler.c ../common/pagedir.h
 	$(CC) $(CFLAGS) -c crawler.c
 
 test: crawler
-	bash -v testing.sh
+	bash -v testing.sh &> testing.out
 
 clean:
 	rm -f *~ *.o crawler
