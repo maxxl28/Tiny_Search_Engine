@@ -1,94 +1,136 @@
-# Design spec
+# **CS50 TSE Querier**
 
-## data structures
+## **Design Spec**
 
-1) index_t is a hastable that connects words to counters_t
-2) counters_t is a set of (docID, count) pairs. 
-3) two_counters_t is a struct we define holding two counters_t pointers. We need this because intersectHelper function needs to be able to access both the result counters and the other counters
-4) max_doc is another struct holding a docID and a score. We use this one to rank the highest-scoring document
+In this document we reference the Requirements Specification and focus on the design-level decisions for the Querier. We describe the abstract data structures, module decomposition, and pseudocode for the querier's logic.
 
-## Pseudocode
+## **User interface**
 
-1) Main loop:
-parse and validate command-line arguments
-load index from file
-while there is input:
-read a line
-tokenize line into array of lowercase words
-if tokenization fails (bad characters), skip
-if no words, skip
-validate query syntax (no leading/trailing/adjacent operators)
-if invalid, skip
-print the cleaned query
-evaluate the query against the index
-rank and print the results
-free everything for this query
-delete the index
+The querier's only interface with the user is on the command line and via stdin:
 
-2) tokenizeQuery
-allocate array of char* pointers
-walk a pointer through the line character by character:
-skip whitespace
-if non-alphabet character found, return error
-mark start of word
-advance pointer while alphabet
-copy characters into a new string and lowercase it
-store in array
-return the word count
+./querier pageDirectory indexFilename
 
-3) validateQuery:
-check first word is not "and" or "or"
-check last word is not "and" or "or"
-for each adjacent pair of words:
-    if both are operators, return error
-return true
+For example:
 
-4) runQuery
+$ ./querier ../data/letters ../data/letters.index
 
-total = NULL
-while words remain:
-product = andSequence(words, position, index)
-if total is NULL:
-total = product
-else:
-union product into total (add scores)
-free product
-if next word is "or":
-skip it, continue loop
-else:
-break
-return total
+After startup, the querier reads queries from stdin one line at a time, printing results to stdout, until EOF.
 
-5) addSequence:
-result = new empty counters
-copy first word's counters into result via union
-advance position
-while more words and next word is not "or":
-if word is "and", skip it
-look up word in index
-if found:
-intersect result with word's counters keep the min scores
-else:
-reset result to empty (AND with nothing = nothing)
-advance position
-return result
+## **Inputs and outputs**
 
-6) intersectCounters - AND
-for each (docID, count) in result:
-look up docID in other
-set result[docID] = min(count, otherCount)
+**Input:**
 
-7) unionCounters - OR
-for each (docID, count) in src:
-set dest[docID] = dest[docID] + count
+* Two command-line arguments: a Crawler-produced pageDirectory and an Indexer-produced indexFilename.  
+* Queries read from stdin, one per line.
 
-8) rankAndPrint
-count documents with nonzero scores
-if none, print "No documents match."
-for each rank position:
-scan all entries, find the one with highest score
-read URL from pageDirectory/docID file
-print score, docID, URL
-set that entry's score to 0
+**Output:**
 
+* For each valid query: the clean query, then a ranked list of matching documents (score, docID, URL), or No documents match.  
+* Error messages to stderr for invalid arguments or malformed queries.  
+* Nothing else to stdout.
+
+## **Functional decomposition into modules**
+
+We anticipate the following modules or functions:
+
+1. **main**: parses arguments, loads index, drives the query loop  
+2. **parseArgs**: validates command-line arguments  
+3. **tokenizeQuery**: reads a line, validates characters, splits into an array of normalized words  
+4. **validateQuery**: checks that operators are not first, last, or adjacent  
+5. **runQuery**: walks the token array following the BNF grammar, computing the result counters  
+6. **andSequence**: computes the intersection (running minimum) for one andsequence  
+7. **rankAndPrint**: ranks documents by score (descending) and prints each with its URL
+
+Helper modules as well:
+
+1. **index**: loads the inverted index from file; provides index\_find  
+2. **pagedir**: provides pagedir\_validate and URL lookup from a document file  
+3. **counters**: used for per-document scores; intersection and union operations implemented via counters\_iterate
+
+## **Major data structures**
+
+**index\_t**: a hashtable mapping word (string) to counters\_t\*. Each counters object maps docID (int) to count (int). This is loaded once at startup from indexFilename and is read-only during query processing.
+
+**counters\_t (result)**: a temporary counters object built during query processing, mapping docID to score. Two operations on counters are central:
+
+* **Intersection** (for AND): iterate over one counters, look up each docID in the other, keep the minimum count. Documents absent from either side get score zero (removed).  
+* **Union** (for OR): iterate over one counters, add each docID's count into the other. Think of AND as a set intersection (narrowing) and OR as a set union (broadening).
+
+## **Pseudo code for logic/algorithmic flow**
+
+The querier runs as follows:
+
+parse and validate command-line arguments  
+load the index from indexFilename  
+loop:  
+    prompt the user (if stdin is a tty)  
+    read one line from stdin; if EOF, break  
+    tokenize and normalize the line into a word array  
+    if no words, continue  
+    validate query structure (no leading/trailing/adjacent operators)  
+    if invalid, print error and continue  
+    print the clean query  
+    call runQuery(wordArray, index) to get result counters  
+    call rankAndPrint(result, pageDirectory) to display matches  
+    free result counters  
+delete the index  
+exit zero
+
+where **runQuery**:
+
+initialize a running 'total' counters (for OR accumulation) to NULL  
+initialize index i \= 0  
+outer loop (over andsequences separated by 'or'):  
+    call andSequence(wordArray, \&i, index) to get a 'product' counters  
+    union 'product' into 'total' (sum counts for each docID)  
+    free 'product'  
+    if wordArray\[i\] \== "or", advance i and continue outer loop  
+    else break  
+return 'total'
+
+where **andSequence**:
+
+get counters for wordArray\[i\] from index; copy into 'result'  
+advance i  
+while wordArray\[i\] is not NULL and not "or":  
+    if wordArray\[i\] \== "and", advance i and continue  
+    get counters for wordArray\[i\] from index  
+    intersect 'result' with those counters (keep minimum per docID)  
+    advance i  
+return 'result'
+
+where **rankAndPrint**:
+
+loop:  
+    use counters\_iterate to find the docID with the highest score  
+    if highest score \== 0, break  
+    read the URL from pageDirectory/docID  
+    print score, docID, URL  
+    set that docID's count to 0 in result (mark as printed as well)
+
+This is effectively a selection sort which will have a runtime O(n squared) but fine for typical query result sizes.
+
+## **Error handling and recovery**
+
+* Invalid command-line arguments:print to stderr, exit non-zero.  
+* Query lines with non-letter, non-space characters: print error, skip query.  
+* Operator as first or last token: print error, skip query.  
+* Two adjacent operators: print error, skip query.  
+* Words not found in index: treated as empty counters (zero matches); intersection produces empty result.  
+* Out-of-memory: mem\_assert prints to stderr and exits non-zero.
+
+## **Testing plan**
+
+**Unit testing:**
+
+* tokenizeQuery tested with edge cases: leading/trailing spaces, multiple spaces between words, all-uppercase input, mixed case.  
+* andSequence / runQuery tested with known index files and manually verified expected scores.
+
+**Integration testing:**
+
+* Test with invalid arguments (wrong count, bad pageDirectory, unreadable indexFile).  
+* Test with malformed queries (operators first/last/adjacent, bad characters).  
+* Test with valid single-word, multi-word, AND-only, OR-only, and mixed queries against /cs50/shared/tse/output/ directories.  
+* Compare output against known-good results.  
+* Run valgrind to verify no memory leaks or errors.
 
