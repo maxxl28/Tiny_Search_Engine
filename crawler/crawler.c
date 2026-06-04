@@ -1,3 +1,12 @@
+/*
+ * crawler.c: Max Spring26
+ *
+ * This file implements the TSE Crawler. It crawls from a seed URL to a given max depth,
+ *  saving each fetched webpage to a numbered file in a given page directory.
+ *
+ * Usage: ./crawler seedURL pageDirectory maxDepth
+ */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +21,14 @@ static void parseArgs(const int argc, char* argv[],
                       char** seedURL, char** pageDirectory, int* maxDepth);
 static void crawl(char* seedURL, char* pageDirectory, const int maxDepth);
 static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen);
+
+
+/* main - entry point for crawler
+ * Caller provides: command-line arguments (seedURL, pageDirectory, maxDepth)
+ * We parse arguments then crawl from seedURL up to maxDepth, saving pages in pageDirectory
+ * We return: 0 on success, exit non-zero on any error we see
+ */
+
 
 int
 main(const int argc, char* argv[])

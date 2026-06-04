@@ -1,3 +1,13 @@
+/*
+ * querier.c    Max, Ale    June 2026
+ *
+ * This file implements the TSE Querier. It reads an index file produced by the Indexer, then answers
+ * search queries from stdin.
+ * Queries support AND and OR operators with AND taking precedence.
+ * Results are printed in decreasing order by score.
+ * Usage: ./querier pageDirectory indexFilename
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,6 +106,13 @@ main(const int argc, char* argv[])
 }
 
 
+
+/* parseArgs: validate and extract command-line arguments
+ * Caller provides: argc, argv, pointers to pageDirectory and indexFilename
+ * We do: verify pageDirectory is a crawler directory, verify indexFilename is readable
+ * We return: only if all arguments are valid; exit non-zero otherwise
+ */
+
 static void
 parseArgs(const int argc, char* argv[],
           char** pageDirectory, char** indexFilename)
@@ -120,7 +137,11 @@ parseArgs(const int argc, char* argv[],
 }
 
 
-
+/* tokenizeQuery: split a query line into an array of normalized words
+ * Caller provides: valid line, pointer to wordArray, pointer to numWords
+ * We return: true on success, false if any non-alpha non-space character found
+ * Caller should free memory
+ */
 
 static bool
 tokenizeQuery(const char* line, char*** wordArray, int* numWords)
@@ -176,6 +197,11 @@ tokenizeQuery(const char* line, char*** wordArray, int* numWords)
 }
 
 
+/* validateQuery: check that operators are not first, last, or adjacent
+ * Caller provides: valid wordArray, numWords >= 1
+ * We return: true if query structure is valid, false with error message otherwise
+ */
+
 static bool
 validateQuery(char** wordArray, const int numWords)
 {
@@ -208,6 +234,11 @@ validateQuery(char** wordArray, const int numWords)
   return true;
 }
 
+/* runQuery: execute a query against the index
+ * Caller provides: valid wordArray, numWords, loaded index
+ * We return: heap-allocated counters mapping docID to score
+ * Caller must free memory
+ */
 
 static counters_t*
 runQuery(char** wordArray, const int numWords, index_t* index)
@@ -235,6 +266,10 @@ runQuery(char** wordArray, const int numWords, index_t* index)
   return total;
 }
 
+/* andSequence: process one AND sequence from the word array
+ * Caller provides: valid wordArray, pointer to current index i, loaded index
+ * We return: heap-allocated counters for this andsequence
+ */
 
 static counters_t*
 andSequence(char** wordArray, int* i, index_t* index)

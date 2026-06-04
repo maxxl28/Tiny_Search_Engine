@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# testing for crawler
+
 CRAWLER=./crawler
 LETTERS=http://cs50tse.cs.dartmouth.edu/tse/letters/
 TOSCRAPE=http://cs50tse.cs.dartmouth.edu/tse/toscrape/

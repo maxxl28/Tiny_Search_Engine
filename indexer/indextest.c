@@ -12,6 +12,14 @@
 #include <stdlib.h>
 #include "../common/index.h"
 
+/*
+ * Caler provides: two command-line arguments (oldIndexFilename, newIndexFilename)
+ * We do: load the index from oldIndexFilename into memory, then save it back out to newIndexFilename
+ * We return: 0 on success, exit non-zero on any error
+ *
+ * This serves as a unit test for index_load and index_save. If the two files are equivalent everything works. 
+ */
+
 int main(const int argc, char* argv[])
 {
     if (argc != 3) {
