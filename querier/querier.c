@@ -344,7 +344,7 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
   int matchCount = 0;
   counters_iterate(result, &matchCount, countHelper);
   if (matchCount == 0) {
-    printf("All conts are zero so no docs match.\n");
+    printf("All counts are zero so no docs match.\n");
     return;
   }
   printf("Matches %d documents (ranked):\n", matchCount);
