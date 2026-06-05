@@ -7,7 +7,6 @@
  * Usage: ./crawler seedURL pageDirectory maxDepth
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,18 +27,14 @@ static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSee
  * We parse arguments then crawl from seedURL up to maxDepth, saving pages in pageDirectory
  * We return: 0 on success, exit non-zero on any error we see
  */
-
-
 int
 main(const int argc, char* argv[])
 {
   char* seedURL = NULL;
   char* pageDirectory = NULL;
   int maxDepth = 0;
-
   parseArgs(argc, argv, &seedURL, &pageDirectory, &maxDepth);
   crawl(seedURL, pageDirectory, maxDepth);
-
   return 0;
 }
 
@@ -56,7 +51,6 @@ void parseArgs(const int argc, char* argv[],
         fprintf(stderr, "Usage: ./crawler seedURL pageDirectory maxDepth\n");
         exit(1);
     }
-
     // validate and normalize seedURL
     *seedURL = normalizeURL(argv[1]);
     if (*seedURL == NULL) {
@@ -74,8 +68,6 @@ void parseArgs(const int argc, char* argv[],
         fprintf(stderr, "Error: cannot initialize pageDirectory: %s\n", *pageDirectory);
         exit(1);
     }
-
-
     // validate maxDepth
     char excess;
     if (sscanf(argv[3], "%d%c", maxDepth, &excess) != 1) {
@@ -101,8 +93,6 @@ void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
   bag_insert(webPages, seedPage);
   int docID = 1;
   webpage_t* page;
-
-  
   while ((page = bag_extract(webPages)) != NULL) {
     if (webpage_fetch(page)) {
       pagedir_save(page, pageDirectory, docID);
