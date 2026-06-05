@@ -118,9 +118,11 @@ void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen)
 {
   int pos = 0;
   char* url;  
+  // extract each URL from the page one at a time
   while ((url = webpage_getNextURL(page, &pos)) != NULL) {
     if (isInternalURL(url)) {
       if (hashtable_insert(pagesSeen, url, "")) {
+        // create webpage at depth+1 and add to crawl queue
         webpage_t* newPage = webpage_new(url, webpage_getDepth(page) + 1, NULL);
         bag_insert(pagesToCrawl, newPage);
       } else {
