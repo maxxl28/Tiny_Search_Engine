@@ -288,6 +288,9 @@ andSequence(char** wordArray, int* i, index_t* index)
   return result;
 }
 
+
+// Ale Sprin26
+
 // modifies result in place: for each docID currently in result,
 // set its score to min(result's score, other's score).
 static void

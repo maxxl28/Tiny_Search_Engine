@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Ale Sprin26
+
 CRAWLER_DATA=../crawler/testdata
 
 #args

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Ale Sprin26
+
 # testing for crawler
 
 CRAWLER=./crawler

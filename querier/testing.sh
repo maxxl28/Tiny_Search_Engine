@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Ale Sprin26
+
 PAGEDIR=../crawler/testdata/letters-10
 INDEXFILE=letters-10.index
 

@@ -1,0 +1,262 @@
+#!/bin/bash
+
+PAGEDIR=../crawler/testdata/letters-10
+INDEXFILE=letters-10.index
+
+../indexer/indexer $PAGEDIR $INDEXFILE
+
+# arg stuff
+echo "Argument tests"
+Argument tests
+
+./querier
+Usage: ./querier pageDirectory indexFilename
+
+./querier $PAGEDIR
+Usage: ./querier pageDirectory indexFilename
+
+# three arguments
+./querier $PAGEDIR $INDEXFILE extra
+Usage: ./querier pageDirectory indexFilename
+
+# directory
+./querier /no/such/dir $INDEXFILE
+Error: invalid pageDirectory: /no/such/dir
+
+./querier /tmp $INDEXFILE
+Error: invalid pageDirectory: /tmp
+
+./querier $PAGEDIR /no/such/file
+Error: cannot read indexFilename: /no/such/file
+
+
+# making sure syntaz is checked
+echo "Syntax error tests"
+Syntax error tests
+./querier $PAGEDIR $INDEXFILE <<EOF
+and
+or
+and earth
+or earth
+planet earth or
+planet earth and
+planet earth and or science
+planet earth and and science
+planet earth or and science
+Warning!
+hello (world)
+EOF
+Error: 'and' cannot be first
+Error: 'or' cannot be first
+Error: 'and' cannot be first
+Error: 'or' cannot be first
+Error: 'or' cannot be last
+Error: 'and' cannot be last
+Error: 'and' and 'or' cannot be adjacent
+Error: 'and' and 'and' cannot be adjacent
+Error: 'or' and 'and' cannot be adjacent
+Error: invalid character in query
+Error: invalid character in query
+
+
+# correctness
+echo "Test: words"
+Test: words
+./querier $PAGEDIR $INDEXFILE <<EOF
+home
+tse
+for
+nonexistentword
+EOF
+Query: home
+Matches 10 documents (ranked):
+score    2 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    2 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+score    1 doc   10: http://cs50tse.cs.dartmouth.edu/tse/letters/C.html
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+score    1 doc    7: http://cs50tse.cs.dartmouth.edu/tse/letters/H.html
+score    1 doc    6: http://cs50tse.cs.dartmouth.edu/tse/letters/G.html
+score    1 doc    5: http://cs50tse.cs.dartmouth.edu/tse/letters/E.html
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+Query: tse
+Matches 2 documents (ranked):
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: for
+Matches 10 documents (ranked):
+score    1 doc   10: http://cs50tse.cs.dartmouth.edu/tse/letters/C.html
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+score    1 doc    7: http://cs50tse.cs.dartmouth.edu/tse/letters/H.html
+score    1 doc    6: http://cs50tse.cs.dartmouth.edu/tse/letters/G.html
+score    1 doc    5: http://cs50tse.cs.dartmouth.edu/tse/letters/E.html
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: nonexistentword
+All counts are zero so no docs match.
+
+echo "Test: and in the quierie"
+Test: and in the quierie
+./querier $PAGEDIR $INDEXFILE <<EOF
+home and page
+tse and home
+search and first
+EOF
+Query: home and page
+Matches 2 documents (ranked):
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: tse and home
+Matches 2 documents (ranked):
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: search and first
+Matches 2 documents (ranked):
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+
+echo "Test: or queries"
+Test: or queries
+./querier $PAGEDIR $INDEXFILE <<EOF
+home or page
+tse or algorithm
+EOF
+Query: home or page
+Matches 10 documents (ranked):
+score    3 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    3 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+score    1 doc   10: http://cs50tse.cs.dartmouth.edu/tse/letters/C.html
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+score    1 doc    7: http://cs50tse.cs.dartmouth.edu/tse/letters/H.html
+score    1 doc    6: http://cs50tse.cs.dartmouth.edu/tse/letters/G.html
+score    1 doc    5: http://cs50tse.cs.dartmouth.edu/tse/letters/E.html
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+Query: tse or algorithm
+Matches 3 documents (ranked):
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+
+echo "Test: and/or "
+Test: and/or 
+./querier $PAGEDIR $INDEXFILE <<EOF
+home and page or tse
+coding or search and first
+EOF
+Query: home and page or tse
+Matches 2 documents (ranked):
+score    2 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    2 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: coding or search and first
+Matches 3 documents (ranked):
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    7: http://cs50tse.cs.dartmouth.edu/tse/letters/H.html
+
+echo "Test: not there and"
+Test: not there and
+./querier $PAGEDIR $INDEXFILE <<EOF
+home page
+tse home
+EOF
+Query: home page
+Matches 2 documents (ranked):
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: tse home
+Matches 2 documents (ranked):
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+
+echo "Test: empty/whitespace"
+Test: empty/whitespace
+./querier $PAGEDIR $INDEXFILE <<EOF
+
+   
+EOF
+
+
+#prof provided fuzz test
+echo "Fuzz test"
+Fuzz test
+./fuzzquery $INDEXFILE 20 42 | ./querier $PAGEDIR $INDEXFILE
+./fuzzquery: generating 20 queries from 22 words
+Query: tse
+Matches 2 documents (ranked):
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: eniac and search or breadth coarseness intorsion or intracostal
+All counts are zero so no docs match.
+Query: this fast and algorithm
+All counts are zero so no docs match.
+Query: breadth necrotomy stoothing this computational
+All counts are zero so no docs match.
+Query: algorithm or playground pseudodipteros fourier
+Matches 1 documents (ranked):
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+Query: for tse epimorphosis and breadth or for graph
+Matches 1 documents (ranked):
+score    1 doc    6: http://cs50tse.cs.dartmouth.edu/tse/letters/G.html
+Query: chromatogram depth and bdellostoma or coding lycosid intentive
+All counts are zero so no docs match.
+Query: eniac desmogenous or hathor and the
+All counts are zero so no docs match.
+Query: fast
+Matches 1 documents (ranked):
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+Query: first or baggie or fourier
+Matches 3 documents (ranked):
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+Query: page fourier or algorithm and algorithm home
+Matches 1 documents (ranked):
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+Query: for
+Matches 10 documents (ranked):
+score    1 doc   10: http://cs50tse.cs.dartmouth.edu/tse/letters/C.html
+score    1 doc    9: http://cs50tse.cs.dartmouth.edu/tse/letters/D.html
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+score    1 doc    7: http://cs50tse.cs.dartmouth.edu/tse/letters/H.html
+score    1 doc    6: http://cs50tse.cs.dartmouth.edu/tse/letters/G.html
+score    1 doc    5: http://cs50tse.cs.dartmouth.edu/tse/letters/E.html
+score    1 doc    4: http://cs50tse.cs.dartmouth.edu/tse/letters/B.html
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: traversal graph or popularity
+Matches 1 documents (ranked):
+score    1 doc    6: http://cs50tse.cs.dartmouth.edu/tse/letters/G.html
+Query: transform or nervosanguineous
+Matches 1 documents (ranked):
+score    1 doc    8: http://cs50tse.cs.dartmouth.edu/tse/letters/F.html
+Query: tse or coding and for or first computational and this
+Matches 3 documents (ranked):
+score    1 doc    7: http://cs50tse.cs.dartmouth.edu/tse/letters/H.html
+score    1 doc    3: http://cs50tse.cs.dartmouth.edu/tse/letters/index.html
+score    1 doc    1: http://cs50tse.cs.dartmouth.edu/tse/letters/
+Query: tse and redistend first or algorithm
+Matches 1 documents (ranked):
+score    1 doc    2: http://cs50tse.cs.dartmouth.edu/tse/letters/A.html
+Query: tse and unwalked and first or tse computational
+All counts are zero so no docs match.
+Query: biology the or fourier and traversal tuan playground
+All counts are zero so no docs match.
+Query: noctuiform
+All counts are zero so no docs match.
+Query: transform coding eniac traversal
+All counts are zero so no docs match.
+
+
+# valgrind
+echo "Valgrind"
+Valgrind
+./fuzzquery $INDEXFILE 5 7 | valgrind --leak-check=full --show-leak-kinds=all ./querier $PAGEDIR $INDEXFILE
+testing.sh: line 91: valgrind: command not found
+./fuzzquery: generating 5 queries from 22 words
