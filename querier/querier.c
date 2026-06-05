@@ -65,16 +65,19 @@ main(const int argc, char* argv[])
 
   // process queries one line at a time
   char* line;
-  while (prompt(), (line = file_readLine(stdin)) != NULL) {
+  prompt();
+  while ((line = file_readLine(stdin)) != NULL) {
     char** wordArray = NULL;
     int numWords = 0;
     if (!tokenizeQuery(line, &wordArray, &numWords)) {
       free(line);
+      prompt();
       continue;
     }
     if (numWords == 0) {
       free(wordArray);
       free(line);
+      prompt();
       continue;
     }
     if (!validateQuery(wordArray, numWords)) {
@@ -83,6 +86,7 @@ main(const int argc, char* argv[])
       }
       free(wordArray);
       free(line);
+      prompt();
       continue;
     }
     printf("Query:");
@@ -100,19 +104,17 @@ main(const int argc, char* argv[])
     }
     free(wordArray);
     free(line);
+    prompt();
   }
   index_delete(index);
   return 0;
 }
-
-
 
 /* parseArgs: validate and extract command-line arguments
  * Caller provides: argc, argv, pointers to pageDirectory and indexFilename
  * We do: verify pageDirectory is a crawler directory, verify indexFilename is readable
  * We return: only if all arguments are valid; exit non-zero otherwise
  */
-
 static void
 parseArgs(const int argc, char* argv[],
           char** pageDirectory, char** indexFilename)
@@ -142,7 +144,6 @@ parseArgs(const int argc, char* argv[],
  * We return: true on success, false if any non-alpha non-space character found
  * Caller should free memory
  */
-
 static bool
 tokenizeQuery(const char* line, char*** wordArray, int* numWords)
 {
