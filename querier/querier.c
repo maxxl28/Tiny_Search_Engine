@@ -364,6 +364,7 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
       url = file_readLine(fp);
       fclose(fp);
     }
+    //print out the doc and score
     if (url != NULL) {
       printf("score %4d doc %4d: %s\n", max.maxCount, max.maxKey, url);
     } 
