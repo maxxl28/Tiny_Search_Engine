@@ -396,10 +396,11 @@ countHelper(void* arg, const int key, const int count)
     (*n)++;
   }
 }
-
 // prints Query? regardless of whether it is from stdin or from a file
 static void
 prompt(void)
 {
-  printf("Query? ");
+  if (isatty(fileno(stdin))) {
+    printf("Query? ");
+  }
 }
