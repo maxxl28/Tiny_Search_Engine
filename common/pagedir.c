@@ -16,6 +16,7 @@
 bool
 pagedir_init(const char* pageDirectory)
 {
+  // build path and create .crawler marker file
   char filepath[strlen(pageDirectory) + strlen("/.crawler") + 1];
   sprintf(filepath, "%s/.crawler", pageDirectory);
 
@@ -40,7 +41,7 @@ pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID)
     fprintf(stderr, "Cannot save page: %s\n", filepath);
     exit(1);
   }
-
+  // write URL, depth, HTML on successive lines
   fprintf(fp, "%s\n%d\n%s",
           webpage_getURL(page),
           webpage_getDepth(page),
@@ -75,13 +76,12 @@ pagedir_load(const char* pageDirectory, const int docID)
   if (fp == NULL) {
     return NULL;
   }
-
+  // read URL, depth, and HTML then return as webpage
   char* url = file_readLine(fp);
   char depthStr[20];
   fgets(depthStr, 20, fp);
   int depth = atoi(depthStr);
   char* html = file_readFile(fp);
-
   fclose(fp);
   return webpage_new(url, depth, html);
 }

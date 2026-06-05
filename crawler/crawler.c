@@ -86,6 +86,7 @@ void parseArgs(const int argc, char* argv[],
 static 
 void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
 {
+  // initialize seen URLs and pages to crawl
   hashtable_t* pagesSeen = hashtable_new(200);
   hashtable_insert(pagesSeen, seedURL, "");
   bag_t* webPages = bag_new();
@@ -95,8 +96,10 @@ void crawl(char* seedURL, char* pageDirectory, const int maxDepth)
   webpage_t* page;
   while ((page = bag_extract(webPages)) != NULL) {
     if (webpage_fetch(page)) {
+      // save and increment
       pagedir_save(page, pageDirectory, docID);
       docID++;
+      
       if (webpage_getDepth(page) < maxDepth) {
           pageScan(page, webPages, pagesSeen);
       }
