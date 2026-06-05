@@ -151,13 +151,11 @@ tokenizeQuery(const char* line, char*** wordArray, int* numWords)
   if (line == NULL || wordArray == NULL || numWords == NULL){
     return false;
   }
-
   // upper bound is max possible amount of words but just to be safe we make it larger
   int maxWords = strlen(line) +1;
   *wordArray = mem_malloc(maxWords * sizeof(char*));
   int i = 0;
   const char* p = line;
-
   while (*p != '\0') {
     // skip spaces
     if (isspace(*p)) {
@@ -176,7 +174,6 @@ tokenizeQuery(const char* line, char*** wordArray, int* numWords)
       *numWords = 0;
       return false;
     }
-
     const char* start = p;
     while (isalpha(*p)) { 
       p++;
@@ -186,12 +183,10 @@ tokenizeQuery(const char* line, char*** wordArray, int* numWords)
     char* word = mem_malloc(wordLen + 1);
     strncpy(word, start, wordLen);
     word[wordLen] = '\0';
-
     // normalize and store
     normalizeWord(word);
     (*wordArray)[i++] = word;
   }
-
   (*wordArray)[i] = NULL;
   *numWords = i;
   return true;
@@ -202,11 +197,9 @@ tokenizeQuery(const char* line, char*** wordArray, int* numWords)
  * Caller provides: valid wordArray, numWords >= 1
  * We return: true if query structure is valid, false with error message otherwise
  */
-
 static bool
 validateQuery(char** wordArray, const int numWords)
 {
-  
   //check everything is there
   if (wordArray == NULL || numWords <= 0){
     return false;
@@ -240,30 +233,25 @@ validateQuery(char** wordArray, const int numWords)
  * We return: heap-allocated counters mapping docID to score
  * Caller must free memory
  */
-
 static counters_t*
 runQuery(char** wordArray, const int numWords, index_t* index)
 {
   counters_t* total = NULL;
   int i = 0;
-
   while (i < numWords) {
     counters_t* product = andSequence(wordArray, &i, index);
-
     if (total == NULL) {
       total = product;
     } else {
       unionCounters(total, product);
       counters_delete(product);
     }
-
     if (i < numWords && strcmp(wordArray[i], "or") == 0) {
       i++;
     } else {
       break;
     }
   }
-
   return total;
 }
 
@@ -271,7 +259,6 @@ runQuery(char** wordArray, const int numWords, index_t* index)
  * Caller provides: valid wordArray, pointer to current index i, loaded index
  * We return: heap-allocated counters for this andsequence
  */
-
 static counters_t*
 andSequence(char** wordArray, int* i, index_t* index)
 {
@@ -288,7 +275,6 @@ andSequence(char** wordArray, int* i, index_t* index)
       (*i)++;
       continue;
     }
-
     // then we intersect with next word's counters
     counters_t* ctrs = index_find(index, wordArray[*i]);
     if (ctrs != NULL) {
@@ -299,7 +285,6 @@ andSequence(char** wordArray, int* i, index_t* index)
     }
     (*i)++;
   }
-
   return result;
 }
 
@@ -362,19 +347,14 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
     printf("All conts are zero so no docs match.\n");
     return;
   }
-
   printf("Matches %d documents (ranked):\n", matchCount);
-
   //each iteration finds the max, prints it, sets it to zero
   for (int n = 0; n < matchCount; n++) {
     max_doc_t max = {0, 0};
     counters_iterate(result, &max, rankHelper);
     if (max.maxCount == 0) break;
-
-    
     char* filepath = mem_malloc(strlen(pageDirectory) + 20);
     sprintf(filepath, "%s/%d", pageDirectory, max.maxKey);
-
     // read the URL 
     FILE* fp = fopen(filepath, "r");
     char* url = NULL;
@@ -382,7 +362,6 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
       url = file_readLine(fp);
       fclose(fp);
     }
-
     if (url != NULL) {
       printf("score %4d doc %4d: %s\n", max.maxCount, max.maxKey, url);
     } 
@@ -391,7 +370,6 @@ rankAndPrint(counters_t* result, const char* pageDirectory)
     }
     free(url);
     free(filepath);
-
     counters_set(result, max.maxKey, 0);
   }
 }
@@ -407,7 +385,6 @@ rankHelper(void* arg, const int key, const int count)
     (*max).maxCount = count;
   }
 }
-
 // called once per (docID, count) in result.
 // increments the counter if this doc has a nonzero score.
 static void
