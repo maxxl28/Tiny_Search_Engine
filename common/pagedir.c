@@ -1,5 +1,7 @@
 /*
  * pagedir.c Max Peter Ale May 2026
+
+ Implements functions that allow reading and writing to the page directory. 
  */
 
 #include <stdio.h>
