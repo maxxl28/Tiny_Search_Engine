@@ -51,7 +51,7 @@ int fileno(FILE* stream);
 int
 main(const int argc, char* argv[])
 {
-  // this needs to 
+  // this needs to check if args are valid and start
   char* pageDirectory = NULL;
   char* indexFilename = NULL;
   parseArgs(argc, argv, &pageDirectory, &indexFilename);
