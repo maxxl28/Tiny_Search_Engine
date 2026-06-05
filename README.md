@@ -17,3 +17,9 @@ make clear: Removes all compiled files.
 ## Testing
 
 Each subsystem has its own `testing.sh`. From any subdirectory just type make test
+
+## Division of Work:
+
+Ale: did all three testing.sh files and half of the querier. Also wrote all the readme's and fixed bugs after testing
+Max: Did crawler.c and other half of querier
+Peter: Did indexer and indextest

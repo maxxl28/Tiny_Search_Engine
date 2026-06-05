@@ -1,8 +1,7 @@
 /*
  * querier.c    Max, Ale    June 2026
  *
- * This file implements the TSE Querier. It reads an index file produced by the Indexer, then answers
- * search queries from stdin.
+ * This file implements the TSE Querier. It reads an index file produced by the Indexer, then answerssearch queries from stdin.
  * Queries support AND and OR operators with AND taking precedence.
  * Results are printed in decreasing order by score.
  * Usage: ./querier pageDirectory indexFilename
